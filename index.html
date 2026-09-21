@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webhook Endpoint Tester — Test Any Webhook URL in Seconds</title>
+  <meta name="description" content="Free tool: send a test POST to any webhook endpoint and see the response status, latency, and body preview instantly. No signup required.">
+  <meta property="og:title" content="Webhook Endpoint Tester">
+  <meta property="og:description" content="Send a test POST to any webhook URL and see the response instantly. Free, no signup.">
+  <meta property="og:url" content="https://lior-seats.github.io/webhook-tester/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Webhook Endpoint Tester — Free">
+  <meta name="twitter:description" content="Test any webhook endpoint in seconds. See status, latency, and response body.">
+  <link rel="canonical" href="https://lior-seats.github.io/webhook-tester/">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f1117; color: #e2e8f0; min-height: 100vh; line-height: 1.6;
+    }
+    a { color: #63b3ed; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header {
+      background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+      border-bottom: 1px solid #2d3748; padding: 2.5rem 1.5rem 2rem; text-align: center;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; color: #f7fafc; margin-bottom: 0.5rem; }
+    header p { color: #a0aec0; max-width: 560px; margin: 0 auto; font-size: 1.05rem; }
+    .badge {
+      display: inline-block; background: #2d3748; border: 1px solid #4a5568;
+      color: #a0aec0; font-size: 0.78rem; border-radius: 4px; padding: 2px 8px; margin-top: 0.75rem;
+    }
+    .container { max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .card {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px;
+      padding: 1.75rem; margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1.05rem; color: #cbd5e0; margin-bottom: 1.25rem; font-weight: 600; }
+    label { display: block; font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.35rem; font-weight: 500; }
+    .hint { font-size: 0.75rem; color: #718096; margin-top: 0.2rem; }
+    input[type="text"], input[type="url"], select, textarea {
+      width: 100%; background: #2d3748; border: 1px solid #4a5568;
+      color: #e2e8f0; border-radius: 6px; padding: 0.65rem 0.85rem;
+      font-size: 0.95rem; outline: none; transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #63b3ed; }
+    textarea { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.85rem; resize: vertical; }
+    .url-row { display: flex; gap: 0.75rem; align-items: flex-start; }
+    .url-row input { flex: 1; }
+    .method-sel { width: 110px; flex-shrink: 0; }
+    .btn-test {
+      width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700;
+      border-radius: 8px; border: none; cursor: pointer;
+      background: linear-gradient(135deg, #3182ce, #2b6cb0); color: #fff;
+      transition: opacity 0.15s; margin-top: 1rem;
+    }
+    .btn-test:hover { opacity: 0.88; }
+    .btn-test:disabled { opacity: 0.4; cursor: not-allowed; }
+    .field { margin-bottom: 1rem; }
+    #results { display: none; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.35rem 0.85rem; border-radius: 6px; font-weight: 700; font-size: 1rem;
+    }
+    .status-2xx { background: #1c4532; color: #68d391; border: 1px solid #276749; }
+    .status-3xx { background: #744210; color: #f6e05e; border: 1px solid #975a16; }
+    .status-4xx { background: #742a2a; color: #fc8181; border: 1px solid #9b2c2c; }
+    .status-5xx { background: #742a2a; color: #fc8181; border: 1px solid #9b2c2c; }
+    .status-err { background: #2d3748; color: #a0aec0; border: 1px solid #4a5568; }
+    .result-meta { display: flex; gap: 1.5rem; margin: 1rem 0; flex-wrap: wrap; }
+    .meta-item { font-size: 0.85rem; }
+    .meta-item .lbl { color: #718096; }
+    .meta-item .val { color: #e2e8f0; font-weight: 600; }
+    .response-body {
+      background: #0f1117; border: 1px solid #2d3748; border-radius: 6px;
+      padding: 1rem; font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.82rem; color: #a0aec0; white-space: pre-wrap;
+      word-break: break-all; max-height: 300px; overflow-y: auto; margin-top: 0.75rem;
+    }
+    .resp-headers { margin-top: 0.75rem; }
+    .resp-headers details summary { cursor: pointer; font-size: 0.85rem; color: #a0aec0; padding: 0.5rem 0; }
+    .resp-headers table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 0.5rem; }
+    .resp-headers td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #2d3748; }
+    .resp-headers td:first-child { color: #718096; width: 160px; }
+    .error-box { background: #742a2a; border: 1px solid #9b2c2c; border-radius: 6px; padding: 1rem; color: #fbd5d5; }
+    .cta-card {
+      background: linear-gradient(135deg, #1a2c4a, #1e3a5f); border: 1px solid #2b6cb0;
+      border-radius: 10px; padding: 1.75rem; text-align: center;
+    }
+    .cta-card h3 { font-size: 1.15rem; color: #f7fafc; margin-bottom: 0.5rem; }
+    .cta-card p { color: #90cdf4; font-size: 0.92rem; margin-bottom: 1.25rem; max-width: 480px; margin-left:auto;margin-right:auto; }
+    .btn-cta {
+      display: inline-block; background: #2b6cb0; color: #fff;
+      padding: 0.75rem 1.75rem; border-radius: 7px; font-weight: 700;
+      font-size: 0.95rem; border: 1px solid #3182ce; transition: background 0.15s; text-decoration: none;
+    }
+    .btn-cta:hover { background: #3182ce; text-decoration: none; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .examples { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
+    .example-chip {
+      background: #2d3748; border: 1px solid #4a5568; border-radius: 4px;
+      font-size: 0.75rem; padding: 2px 8px; color: #a0aec0; cursor: pointer; transition: background 0.1s;
+    }
+    .example-chip:hover { background: #4a5568; color: #e2e8f0; }
+    footer { text-align: center; padding: 2rem 1.5rem; color: #4a5568; font-size: 0.82rem; border-top: 1px solid #1a202c; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🔔 Webhook Endpoint Tester</h1>
+  <p>Send a test POST to any webhook URL and see the response status, latency, and body — instantly.</p>
+  <div class="badge">Free · No signup · Works with Stripe, GitHub, Twilio, Slack, and any custom endpoint</div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>⚡ Test your webhook endpoint</h2>
+
+    <div class="field">
+      <label>Webhook URL</label>
+      <div class="url-row">
+        <select class="method-sel" id="method">
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="PATCH">PATCH</option>
+        </select>
+        <input type="url" id="url" placeholder="https://your-app.com/webhooks/stripe" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="hint">Must be a public HTTPS endpoint. Private/local addresses are blocked for security.</div>
+      <div class="examples">
+        Quick test services:
+        <span class="example-chip" onclick="fillExample('httpbin')">httpbin.org</span>
+        <span class="example-chip" onclick="fillExample('requestcatcher')">requestcatcher.com</span>
+        <span class="example-chip" onclick="fillExample('webhook')">webhook.site</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Payload (JSON)</label>
+      <textarea id="payload" rows="6" spellcheck="false">{
+  "event": "webhookpulse.test",
+  "timestamp": "",
+  "data": {
+    "message": "This is a test delivery from WebhookPulse"
+  }
+}</textarea>
+      <div class="hint">Leave blank to send the default test payload. Custom JSON accepted.</div>
+    </div>
+
+    <div class="field">
+      <label>Webhook Secret (optional)</label>
+      <input type="text" id="secret" placeholder="your-webhook-secret (sent as X-Webhook-Secret)">
+      <div class="hint">For HMAC-signed endpoints that require a shared secret in a header.</div>
+    </div>
+
+    <button class="btn-test" id="test-btn" onclick="runTest()">Send test request →</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="card" id="result-card">
+      <h2>📋 Response</h2>
+
+      <div id="result-success" style="display:none">
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <span class="status-badge" id="status-badge">—</span>
+          <span style="font-size:0.85rem;color:#a0aec0" id="status-text">—</span>
+        </div>
+
+        <div class="result-meta">
+          <div class="meta-item"><span class="lbl">Latency: </span><span class="val" id="r-latency">—</span></div>
+          <div class="meta-item"><span class="lbl">Response size: </span><span class="val" id="r-size">—</span></div>
+          <div class="meta-item"><span class="lbl">URL: </span><span class="val" id="r-url" style="font-size:0.8rem;word-break:break-all">—</span></div>
+        </div>
+
+        <div>
+          <div style="font-size:0.82rem;color:#718096;margin-bottom:0.4rem">Response body:</div>
+          <div class="response-body" id="r-body">—</div>
+        </div>
+
+        <div class="resp-headers">
+          <details>
+            <summary>Response headers</summary>
+            <table id="r-headers-table"><tbody></tbody></table>
+          </details>
+        </div>
+      </div>
+
+      <div id="result-error" class="error-box" style="display:none">
+        <strong>⚠ Connection error</strong><br>
+        <span id="r-error-msg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- What to check -->
+  <div class="card" style="font-size:0.9rem">
+    <h2>🔍 What makes a healthy webhook response?</h2>
+    <ul style="padding-left:1.4em;color:#a0aec0;line-height:1.9">
+      <li><strong style="color:#68d391">HTTP 200–204:</strong> Your endpoint received the request and processed it.</li>
+      <li><strong style="color:#f6ad55">HTTP 3xx:</strong> Redirects — most webhook senders do NOT follow redirects. Fix your endpoint URL.</li>
+      <li><strong style="color:#fc8181">HTTP 400:</strong> Your handler rejected the payload — signature check failed, or the body format is wrong.</li>
+      <li><strong style="color:#fc8181">HTTP 500:</strong> Handler crashed. Check your server logs. Stripe will retry up to 7 times over 72 hours.</li>
+      <li><strong style="color:#fc8181">Timeout / no response:</strong> Your handler took over 30 seconds, or the endpoint is unreachable. Stripe marks this as a failure and retries.</li>
+      <li><strong style="color:#a0aec0">Latency &gt; 5 seconds:</strong> Consider returning 200 immediately and processing async — long handlers cause timeout failures.</li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-card">
+    <h3>🔔 Get alerted when your real webhooks fail</h3>
+    <p>WebhookPulse monitors every Stripe, GitHub, Twilio, and Shopify delivery — and alerts you within seconds when one fails, with the full response body so you know exactly what broke.</p>
+    <a href="https://lior-seats.github.io/webhookpulse-waitlist/" class="btn-cta">Join the WebhookPulse waitlist →</a>
+    <div style="margin-top:0.75rem;font-size:0.82rem;color:#63b3ed">Early access pricing for waitlist members</div>
+  </div>
+
+  <!-- Cross-link -->
+  <div class="card" style="text-align:center;padding:1.25rem">
+    <p style="color:#a0aec0;font-size:0.88rem">
+      Also worried about AI crawlers spiking your hosting bill?
+      <a href="https://lior-seats.github.io/crawl-check/">Check which bots are hitting your site → crawl-check (free)</a>
+    </p>
+  </div>
+
+</div>
+
+<footer>
+  Built by <a href="https://lior-seats.github.io/">lior-seats</a> ·
+  <a href="https://lior-seats.github.io/webhookpulse-waitlist/">WebhookPulse — passive webhook monitoring</a> ·
+  <a href="https://lior-seats.github.io/blog/webhook-failure-silent-debugging.html">Why webhooks fail silently</a>
+</footer>
+
+<script>
+const PROXY = 'https://agent-control-plane-w3m9.onrender.com/api/test/webhook';
+
+function fillExample(type) {
+  const examples = {
+    httpbin: 'https://httpbin.org/post',
+    requestcatcher: 'https://webhookpulse.requestcatcher.com/test',
+    webhook: 'https://webhook.site/token',
+  };
+  document.getElementById('url').value = examples[type];
+  document.getElementById('url').focus();
+}
+
+async function runTest() {
+  const url    = document.getElementById('url').value.trim();
+  const method = document.getElementById('method').value;
+  const secret = document.getElementById('secret').value.trim();
+  const rawPayload = document.getElementById('payload').value.trim();
+
+  if (!url) { alert('Please enter a webhook URL.'); return; }
+  if (!url.startsWith('https://')) { alert('Only HTTPS URLs are supported.'); return; }
+
+  // Validate JSON payload
+  let payload;
+  if (rawPayload) {
+    try {
+      payload = JSON.parse(rawPayload);
+    } catch(e) {
+      alert('Payload is not valid JSON: ' + e.message); return;
+    }
+  }
+
+  const btn = document.getElementById('test-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Sending…';
+  document.getElementById('results').style.display = 'none';
+
+  try {
+    const body = { url, method, payload, contentType: 'application/json' };
+    if (secret) body.secret = secret;
+
+    const resp = await fetch(PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await resp.json();
+
+    if (!data.ok) {
+      showError(data.error || 'Unknown error from proxy');
+      return;
+    }
+
+    const r = data.result;
+    showResult(r, url);
+  } catch(e) {
+    showError('Could not reach the testing proxy: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Send test request →';
+  }
+}
+
+function showResult(r, url) {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('result-success').style.display = r.statusCode !== null ? 'block' : 'none';
+  document.getElementById('result-error').style.display = r.statusCode === null ? 'block' : 'none';
+
+  if (r.statusCode === null) {
+    document.getElementById('r-error-msg').textContent = r.error || 'Connection failed';
+    scrollToResults();
+    return;
+  }
+
+  const code = r.statusCode;
+  const badge = document.getElementById('status-badge');
+  badge.textContent = code + ' ' + (r.statusText || '');
+  badge.className = 'status-badge ' + (
+    code < 300 ? 'status-2xx' :
+    code < 400 ? 'status-3xx' :
+    code < 500 ? 'status-4xx' : 'status-5xx'
+  );
+
+  document.getElementById('status-text').textContent = r.ok ? '✓ Success — your endpoint is reachable and returned a 2xx response' : '✗ Non-2xx — your endpoint returned an error status';
+  document.getElementById('r-latency').textContent = r.latencyMs + ' ms' + (r.latencyMs > 5000 ? ' ⚠ slow' : r.latencyMs > 2000 ? ' (consider async processing)' : '');
+  document.getElementById('r-size').textContent = r.bodyLength > 0 ? r.bodyLength + ' bytes' : '(empty)';
+  document.getElementById('r-url').textContent = url.length > 60 ? url.slice(0, 60) + '…' : url;
+
+  const body = r.bodyPreview || '(empty response body)';
+  try {
+    const pretty = JSON.stringify(JSON.parse(body), null, 2);
+    document.getElementById('r-body').textContent = pretty;
+  } catch(e) {
+    document.getElementById('r-body').textContent = body;
+  }
+
+  const tbody = document.querySelector('#r-headers-table tbody');
+  tbody.innerHTML = '';
+  const hdrs = r.responseHeaders || {};
+  if (Object.keys(hdrs).length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2" style="color:#718096">No notable response headers</td></tr>';
+  } else {
+    for (const [k, v] of Object.entries(hdrs)) {
+      tbody.innerHTML += `<tr><td>${k}</td><td style="color:#e2e8f0">${v}</td></tr>`;
+    }
+  }
+
+  scrollToResults();
+}
+
+function showError(msg) {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('result-success').style.display = 'none';
+  document.getElementById('result-error').style.display = 'block';
+  document.getElementById('r-error-msg').textContent = msg;
+  scrollToResults();
+}
+
+function scrollToResults() {
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Set default timestamp in payload
+(function() {
+  const ta = document.getElementById('payload');
+  ta.value = ta.value.replace('"timestamp": ""', '"timestamp": "' + new Date().toISOString() + '"');
+})();
+</script>
+</body>
+</html>
