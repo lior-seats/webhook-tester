@@ -364,5 +364,9 @@ function scrollToResults() {
   ta.value = ta.value.replace('"timestamp": ""', '"timestamp": "' + new Date().toISOString() + '"');
 })();
 </script>
+<script>
+// Hit counter u2014 fire and forget
+(function(){try{fetch('https://agent-control-plane-w3m9.onrender.com/api/hit?page=webhook-tester',{mode:'no-cors'}).catch(function(){});}catch(e){}})();
+</script>
 </body>
 </html>
